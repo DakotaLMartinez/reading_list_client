@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-function BooksList({ books, removeBookFromReadingList, addBookToReadingList, createBook }) {
+function BooksList({ currentUser, books, removeBookFromReadingList, addBookToReadingList, createBook, deleteBook }) {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [description, setDescription] = useState('')
@@ -14,6 +14,27 @@ function BooksList({ books, removeBookFromReadingList, addBookToReadingList, cre
     }
   }
 
+  const editAndDeleteButtons = (book) => {
+    if (currentUser.admin) {
+      return (
+        <span>
+          --- {" "}
+          <Link
+            to={`books/${book.id}/edit`}
+          >
+            <button>Edit Book</button>
+          </Link>
+          {" "}
+          <button
+            onClick={() => deleteBook(book.id)}
+          >
+            Delete Book
+          </button>
+        </span>
+      )
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     createBook({title, author, description})
@@ -23,7 +44,7 @@ function BooksList({ books, removeBookFromReadingList, addBookToReadingList, cre
     <div>
       <h1>Books</h1>
       {books.map(book => (
-        <p><Link to={`books/${book.id}`}>{book.title}</Link> --- {addOrRemoveButton(book)}</p>
+        <p><Link to={`books/${book.id}`}>{book.title}</Link> --- {addOrRemoveButton(book)} {editAndDeleteButtons(book)}</p>
       ))}
       <h3>Add Book</h3>
       <form onSubmit={handleSubmit}>

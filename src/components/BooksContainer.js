@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Switch, Route } from 'react-router-dom'
+import { Switch, Route, useHistory, Redirect } from 'react-router-dom'
 import BooksList from './BooksList'
 import BookDetail from './BookDetail'
+import BookEdit from './BookEdit'
 
-function BooksContainer() {
+function BooksContainer({ currentUser }) {
+  const history = useHistory();
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
@@ -119,6 +121,46 @@ function BooksContainer() {
       })
   }
 
+  const updateBook = (bookId, formData) => {
+    return fetch(`/books/${bookId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json().then(updatedBook => {
+            const updatedBooks = books.map(book => {
+              if (book.id === updatedBook.id) {
+                return updatedBook
+              } else {
+                return book
+              }
+            })
+            setBooks(updatedBooks)
+          })
+          .then(() => history.push('/books'))
+        } else {
+          return res.json().then(errors => console.error(errors))
+        }
+      })
+   
+  }
+
+  const deleteBook = (bookId) => {
+    return fetch(`/books/${bookId}`, {
+      method: 'DELETE'
+    })
+      .then(res => {
+        if (res.ok) {
+          setBooks(books.filter(book => book.id !== bookId))
+          history.push('/books')
+        }
+      })
+  }
+
   return (
     <div>
       <Switch>
@@ -127,10 +169,12 @@ function BooksContainer() {
           path="/books"
         >
           <BooksList
+            currentUser={currentUser}
             books={books}
             removeBookFromReadingList={removeBookFromReadingList}
             addBookToReadingList={addBookToReadingList}
             createBook={createBook}
+            deleteBook={deleteBook}
           />
         </Route>
         <Route
@@ -139,14 +183,31 @@ function BooksContainer() {
           render={({ match }) => {
             return (
               <BookDetail
+                currentUser={currentUser}
                 bookId={match.params.id}
                 removeBookFromReadingList={removeBookFromReadingList}
                 addBookToReadingList={addBookToReadingList}
                 toggleBookReadStatus={toggleBookReadStatus}
+                deleteBook={deleteBook}
               />
             )
           }}
         />
+        {currentUser.admin && (  
+          <Route
+            exact
+            path="/books/:id/edit"
+            render={({ match }) => {
+              return (
+                <BookEdit
+                  book={books.find(book => book.id == match.params.id)}
+                  updateBook={updateBook}
+                />
+              )
+            }}
+          />
+        )}
+        <Redirect to="/books" />
       </Switch>
     </div>
   )

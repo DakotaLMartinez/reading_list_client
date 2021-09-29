@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 
 function BookDetail({
   bookId,
   removeBookFromReadingList,
   addBookToReadingList,
-  toggleBookReadStatus
+  toggleBookReadStatus,
+  currentUser,
+  deleteBook
 }) {
   const [book, setBook] = useState(null)
 
@@ -44,12 +47,33 @@ function BookDetail({
     }
   }
 
+  const editAndDeleteButtons = (book) => {
+    if (currentUser.admin) {
+      return (
+        <span>
+          --- {" "}
+          <Link
+            to={`/books/${book.id}/edit`}
+          >
+            <button>Edit Book</button>
+          </Link>
+          {" "}
+          <button
+            onClick={() => deleteBook(book.id)}
+          >
+            Delete Book
+          </button>
+        </span>
+      )
+    }
+  }
+
   if(!book){ return <div></div>}
   
   return (
     <div>
       <h1>{book.title}</h1>
-      <p>{addOrRemoveButton(book)}</p>
+      <p>{addOrRemoveButton(book)} {editAndDeleteButtons(book)}</p>
       <small>by {book.author}</small>
       <p>{book.description}</p>
       

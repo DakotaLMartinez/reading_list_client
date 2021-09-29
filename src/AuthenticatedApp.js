@@ -24,7 +24,7 @@ function AuthenticatedApp({ currentUser, setCurrentUser }) {
       </nav>
       <Switch>
         <Route path="/books">
-          <BooksContainer />
+          <BooksContainer currentUser={currentUser} />
         </Route>
         <Redirect to="/books" />
       </Switch>
